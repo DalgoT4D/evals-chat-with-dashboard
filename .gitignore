@@ -1,0 +1,8 @@
+.env
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+.deepeval/
+results/*
+!results/sample_eval_result.json

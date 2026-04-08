@@ -1,0 +1,28 @@
+[
+    {
+        "question": "How many beneficiaries are there in total?",
+        "expected_intent": "query_with_sql",
+        "expected_tables": ["fact_beneficiaries"],
+        "table_descriptions": {
+            "fact_beneficiaries": "Contains one row per beneficiary with demographic and enrollment data"
+        },
+        "expected_sql": "SELECT COUNT(*) FROM fact_beneficiaries",
+        "answer_expectations": "Should return a single count number"
+    },
+    {
+        "question": "What does this dashboard show?",
+        "expected_intent": "query_without_sql",
+        "expected_tables": [],
+        "table_descriptions": {},
+        "expected_sql": null,
+        "answer_expectations": "Should describe the dashboard's purpose using context docs"
+    },
+    {
+        "question": "What is the weather like today?",
+        "expected_intent": "irrelevant",
+        "expected_tables": [],
+        "table_descriptions": {},
+        "expected_sql": null,
+        "answer_expectations": "Should politely refuse as out-of-scope"
+    }
+]
