@@ -1,119 +1,229 @@
 {
-  "run_at": "20260408_141051",
+  "run_at": "20260409_124043",
   "environment": "http://localhost:8002",
-  "dashboard_id": 65,
+  "dashboard_id": 75,
+  "overall_accuracy": 0.7152,
   "results": [
     {
-      "question": "How many beneficiaries are there in total?",
+      "question": "Which month has the highest number of pipeline failures ?",
+      "total_score": 1.0,
       "scores": {
         "Intent Correctness [GEval]": {
           "score": 1.0,
           "passed": true,
-          "reason": "The value extracted for X from '[intent=query_with_sql]' in the Actual Output matches the value Y from '[expected_intent=query_with_sql]' in the Expected Output. This fulfills the evaluation steps, specifically the requirement that X equals Y."
+          "reason": "The value extracted from '[intent=query_with_sql]' in the Actual Output matches the value from '[expected_intent=query_with_sql]' in the Expected Output, demonstrating perfect alignment with the evaluation steps."
         },
         "Table Selection [GEval]": {
-          "score": 0.0,
-          "passed": false,
-          "reason": "The expected table is 'fact_beneficiaries', but the actual SQL references 'public.sheet22' instead. The required table is missing from the actual output, resulting in a complete mismatch according to the evaluation steps."
+          "score": 1.0,
+          "passed": true,
+          "reason": "The expected table is 'intermediate.agg_pipeline_runs', and the actual SQL query references exactly this table with no extras or omissions. This matches the evaluation steps for a perfect score."
         },
         "SQL Correctness [GEval]": {
-          "score": 0.0,
-          "passed": false,
-          "reason": "The actual SQL queries a different table ('public.sheet22') and counts distinct 'ngo', whereas the expected SQL counts all rows in 'fact_beneficiaries'. This is a fundamental logic difference: the actual output does not match the expected table or aggregation logic, so the outputs are not semantically equivalent."
+          "score": 1.0,
+          "passed": true,
+          "reason": "Both actual and expected outputs contain SQL queries that are semantically equivalent: they select the month and sum of failed runs, group by month, order by total failed runs descending, and limit to 1. The only minor difference is the presence of a WHERE clause filtering on granularity, which does not fundamentally alter the logic given the context. The answer also matches the expectation to return the month with the highest failures."
         },
         "Answer Quality [GEval]": {
-          "score": 0.012643643500221916,
-          "passed": false,
-          "reason": "The actual output uses the wrong table ('sheet22' instead of 'fact_beneficiaries') and counts distinct 'ngo' rather than beneficiaries, which does not align with the expectation to count all rows in 'fact_beneficiaries'. The SQL and table context are both incorrect, and the answer does not meet the requirement to return a single count of beneficiaries."
+          "score": 1.0,
+          "passed": true,
+          "reason": "The actual output fully meets the answer expectations by correctly identifying the month with the highest number of pipeline failures and providing the total failed runs. The SQL query matches the expected logic, uses the correct table, and the intent is aligned. All required criteria are addressed."
+        },
+        "Response Latency": {
+          "score": 1.0,
+          "passed": true,
+          "reason": "Latency 23875ms <= 40000ms threshold"
         }
       },
       "response_payload": {
         "actual_intent": "query_with_sql",
-        "actual_sql": "SELECT COUNT(DISTINCT ngo) AS total_beneficiaries FROM public.sheet22\nLIMIT 200",
-        "actual_answer": "### Total Beneficiaries\n\nThere are a total of **7 beneficiaries** identified in the dataset.",
-        "response_latency_ms": 15345
+        "actual_sql": "SELECT month, SUM(total_failed_runs) AS total_failed_runs\nFROM intermediate.agg_pipeline_runs\nWHERE granularity = 'monthly'\nGROUP BY month\nORDER BY total_failed_runs DESC\nLIMIT 1",
+        "actual_answer": "The month with the highest number of pipeline failures is February, which recorded a total of 107 failed runs.",
+        "response_latency_ms": 23875
       },
-      "expected_intent": "query_with_sql",
-      "expected_tables": [
-        "fact_beneficiaries"
-      ],
-      "table_descriptions": {
-        "fact_beneficiaries": "Contains one row per beneficiary with demographic and enrollment data"
-      },
-      "expected_sql": "SELECT COUNT(*) FROM fact_beneficiaries",
-      "answer_expectations": "Should return a single count number"
+      "expected": {
+        "expected_intent": "query_with_sql",
+        "expected_tables": [
+          "intermediate.agg_pipeline_runs"
+        ],
+        "expected_sql": "SELECT month, SUM(total_failed_runs) AS total_failed_runs FROM intermediate.agg_pipeline_runs \n GROUP BY month \nORDER BY total_failed_runs DESC \n LIMIT 1",
+        "answer_expectations": "Should return the month with the highest number of pipeline failures"
+      }
     },
     {
-      "question": "What does this dashboard show?",
+      "question": "How many dalgo orgs have a superset account ?",
+      "total_score": 0.4977,
       "scores": {
         "Intent Correctness [GEval]": {
-          "score": 1.0,
-          "passed": true,
-          "reason": "The value extracted from '[intent=query_without_sql]' in the Actual Output matches the value '[expected_intent=query_without_sql]' in the Expected Output, demonstrating perfect alignment with the evaluation steps."
+          "score": 0.0,
+          "passed": false,
+          "reason": "The extracted intent from the Actual Output is 'query_with_sql', while the Expected Output specifies 'query_without_sql'. Since these values are not equal, the response does not align with the evaluation steps."
         },
         "Table Selection [GEval]": {
-          "score": 1.0,
+          "score": 0.9884609068736268,
           "passed": true,
-          "reason": "The expected_tables list is empty and the actual_output contains 'NO SQL GENERATED', which matches the evaluation step that requires a perfect score when no tables are expected and no SQL is generated. There are no extra or missing tables, and the outputs align exactly with the requirements."
+          "reason": "The expected table is 'intermediate.all_orgs', and the actual SQL query references only 'intermediate.all_orgs' with no extra tables present. This matches the evaluation step requiring an exact match between expected and actual tables."
         },
         "SQL Correctness [GEval]": {
-          "score": 1.0,
-          "passed": true,
-          "reason": "The expected output indicates that no SQL is expected, and the actual output contains no SQL (it explicitly states 'NO SQL GENERATED'). Additionally, the answer provides a general description of the dashboard's purpose, aligning with the expectation to describe the dashboard using context. This fully aligns with the evaluation steps."
+          "score": 0.0,
+          "passed": false,
+          "reason": "The actual output uses a different SQL logic than expected: it counts DISTINCT org_id where superset_included = TRUE, while the expected SQL counts all rows where superset_viz_url is not null or empty. These filters are not semantically equivalent and may yield different results, indicating fundamentally different logic."
         },
         "Answer Quality [GEval]": {
-          "score": 0.5,
+          "score": 0.5000000000000001,
           "passed": true,
-          "reason": "The response correctly identifies the intent as 'query_without_sql' and does not generate SQL, aligning with expectations. However, the answer only provides a generic overview of a dashboard and does not use any context docs or specific details to describe the dashboard's purpose, as required by the answer expectations. This partially meets the requirements but lacks the necessary specificity."
+          "reason": "The actual output provides a count of Dalgo organizations with Superset accounts, which aligns with the core expectation. However, the SQL logic differs: it uses 'superset_included = TRUE' instead of checking 'superset_viz_url is not null AND superset_viz_url != ''' as specified. Additionally, the intent is marked as 'query_with_sql' rather than 'query_without_sql'. Thus, the answer is only partially aligned with the expectations."
+        },
+        "Response Latency": {
+          "score": 1.0,
+          "passed": true,
+          "reason": "Latency 14992ms <= 40000ms threshold"
         }
       },
       "response_payload": {
-        "actual_intent": "query_without_sql",
-        "actual_sql": null,
-        "actual_answer": "## Overview of the Dashboard\n\nThis dashboard features multiple charts that present various metrics and insights related to the data it encompasses. If you have specific questions about the charts or metrics displayed, feel free to ask!",
-        "response_latency_ms": 9063
+        "actual_intent": "query_with_sql",
+        "actual_sql": "SELECT COUNT(DISTINCT org_id) AS distinct_orgs_with_superset_account FROM intermediate.all_orgs WHERE superset_included = TRUE\nLIMIT 200",
+        "actual_answer": "### Number of Dalgo Organizations with Superset Accounts\n\nThere are **20 distinct Dalgo organizations** that currently have a Superset account.",
+        "response_latency_ms": 14992
       },
-      "expected_intent": "query_without_sql",
-      "expected_tables": [],
-      "table_descriptions": {},
-      "expected_sql": null,
-      "answer_expectations": "Should describe the dashboard's purpose using context docs"
+      "expected": {
+        "expected_intent": "query_without_sql",
+        "expected_tables": [
+          "intermediate.all_orgs"
+        ],
+        "expected_sql": "SELECT COUNT(*) FROM intermediate.all_orgs WHERE superset_viz_url is not null AND superset_viz_url != ''",
+        "answer_expectations": "Should return the count of Dalgo organizations that have a Superset account"
+      }
     },
     {
-      "question": "What is the weather like today?",
+      "question": "Give me top 5 orgs by pipelines runs in the month of Feb 2026",
+      "total_score": 0.6572,
       "scores": {
         "Intent Correctness [GEval]": {
-          "score": 1.0,
-          "passed": true,
-          "reason": "The value extracted for X from the Actual Output is 'irrelevant', and the value extracted for Y from the Expected Output is also 'irrelevant'. Since these values are equal, the response fully aligns with the evaluation steps."
+          "score": 0.0,
+          "passed": false,
+          "reason": "The extracted intent from the Actual Output is 'query_with_sql', while the Expected Output specifies 'query_without_sql'. Since these values are not equal, the response does not align with the evaluation steps."
         },
         "Table Selection [GEval]": {
           "score": 1.0,
           "passed": true,
-          "reason": "The expected tables list is empty and no SQL was generated in the actual output, which matches the evaluation step for a perfect score. The response also aligns with the intent and answer expectations."
+          "reason": "The expected table is 'intermediate.agg_pipeline_runs', and the actual SQL query uses only this table. There are no extra or missing tables, resulting in an exact match as required by the evaluation steps."
+        },
+        "SQL Correctness [GEval]": {
+          "score": 0.5010986942974672,
+          "passed": true,
+          "reason": "Both outputs contain SQL and use the same table, aggregation, grouping, ordering, and limit to return the top 5 organizations by pipeline runs in February 2026. However, the actual output includes an extra filter on year = 2026, which is missing from the expected SQL. This is a minor difference since the answer expectation is for February 2026, so filtering by year is reasonable, but the expected SQL omits it. The main logic is correct, but the discrepancy prevents full alignment."
+        },
+        "Answer Quality [GEval]": {
+          "score": 0.7849263257070785,
+          "passed": true,
+          "reason": "The response correctly returns the top 5 organizations by pipeline runs in February 2026, as required. The answer lists the organizations and their run counts, matching the expectation to provide this information. The SQL query uses the correct table and filters for month 2 and year 2026, aligning with the test case. All answer expectations are fully met."
+        },
+        "Response Latency": {
+          "score": 1.0,
+          "passed": true,
+          "reason": "Latency 11555ms <= 40000ms threshold"
+        }
+      },
+      "response_payload": {
+        "actual_intent": "query_with_sql",
+        "actual_sql": "SELECT org_name, SUM(total_pipeline_runs) AS total_runs\nFROM intermediate.agg_pipeline_runs\nWHERE month = 2 AND year = 2026\nGROUP BY org_name\nORDER BY total_runs DESC\nLIMIT 5",
+        "actual_answer": "### Top 5 Organizations by Pipeline Runs in February 2026\n\nIn February 2026, the organizations with the highest number of pipeline runs were led by BHUMI, followed closely by Dani Sports Foundation - Bootcamp and Dalgo 2.0.\n\n- BHUMI topped the list with 148 pipeline runs.\n- Dani Sports Foundation - Bootcamp had 144 runs, while Dalgo 2.0 recorded 134 runs.\n- Muskan and Goalkeep Demo rounded out the top five with 112 and 98 runs, respectively.",
+        "response_latency_ms": 11555
+      },
+      "expected": {
+        "expected_intent": "query_without_sql",
+        "expected_tables": [
+          "intermediate.agg_pipeline_runs"
+        ],
+        "expected_sql": "SELECT org_name, SUM(total_pipeline_runs) AS total_pipeline_runs \n FROM intermediate.agg_pipeline_runs \n WHERE month = 2 \n GROUP BY org_name \n ORDER BY total_pipeline_runs DESC \n LIMIT 5",
+        "answer_expectations": "Should return the top 5 Dalgo organizations by pipeline runs in February 2026"
+      }
+    },
+    {
+      "question": "What is the weather like today?",
+      "total_score": 1.0,
+      "scores": {
+        "Intent Correctness [GEval]": {
+          "score": 1.0,
+          "passed": true,
+          "reason": "The value extracted from '[intent=irrelevant]' in the Actual Output matches the value '[expected_intent=irrelevant]' in the Expected Output, demonstrating perfect alignment with the evaluation steps."
+        },
+        "Table Selection [GEval]": {
+          "score": 1.0,
+          "passed": true,
+          "reason": "The expected tables list is empty, and the actual output correctly generates no SQL, fully aligning with the evaluation steps for this scenario."
         },
         "SQL Correctness [GEval]": {
           "score": 1.0,
           "passed": true,
-          "reason": "The expected output is null (no SQL expected), and the actual output contains no SQL and politely refuses as out-of-scope, aligning perfectly with the evaluation steps."
+          "reason": "The expected output is null (no SQL expected), and the actual output contains no SQL, only a polite refusal as required. This aligns perfectly with the evaluation steps for out-of-scope queries."
         },
         "Answer Quality [GEval]": {
           "score": 1.0,
           "passed": true,
-          "reason": "The actual output correctly identifies the intent as irrelevant, does not generate SQL as expected, and provides a polite refusal indicating the question is out-of-scope, fully aligning with the answer expectations."
+          "reason": "The response correctly identifies the intent as irrelevant, does not generate SQL as expected, and politely refuses to answer by stating it can only answer questions about the dashboard and its data, fully aligning with the expectation to politely refuse as out-of-scope."
+        },
+        "Response Latency": {
+          "score": 1.0,
+          "passed": true,
+          "reason": "Latency 2109ms <= 40000ms threshold"
         }
       },
       "response_payload": {
         "actual_intent": "irrelevant",
         "actual_sql": null,
         "actual_answer": "I can only answer questions about this dashboard, its charts, and the data behind them.",
-        "response_latency_ms": 5123
+        "response_latency_ms": 2109
       },
-      "expected_intent": "irrelevant",
-      "expected_tables": [],
-      "table_descriptions": {},
-      "expected_sql": null,
-      "answer_expectations": "Should politely refuse as out-of-scope"
+      "expected": {
+        "expected_intent": "irrelevant",
+        "expected_tables": [],
+        "expected_sql": null,
+        "answer_expectations": "Should politely refuse as out-of-scope"
+      }
+    },
+    {
+      "question": "Hi there !",
+      "total_score": 0.421,
+      "scores": {
+        "Intent Correctness [GEval]": {
+          "score": 0.0,
+          "passed": false,
+          "reason": "The extracted intent from the Actual Output is 'small_talk', while the expected intent is 'irrelevant'. Since these values do not match, the response does not align with the evaluation steps."
+        },
+        "Table Selection [GEval]": {
+          "score": 1.0,
+          "passed": true,
+          "reason": "The expected tables list is empty, and the actual output correctly generates no SQL, aligning perfectly with the evaluation steps. There are no missing or extra tables, and the SQL output matches the expectation for an empty expected_tables case."
+        },
+        "SQL Correctness [GEval]": {
+          "score": 0.1048215113185064,
+          "passed": false,
+          "reason": "The expected output indicates that no SQL should be generated, and the actual output contains no SQL, aligning with step 1. However, the answer does not politely refuse or redirect the user as specified in the answer expectations, but since the main criterion is SQL presence, the score is awarded accordingly."
+        },
+        "Answer Quality [GEval]": {
+          "score": 0.0,
+          "passed": false,
+          "reason": "The actual output does not meet the answer expectations: it responds with a generic greeting instead of politely refusing the out-of-scope request and prompting the user to ask a relevant dashboard question. The intent is also mismatched, as it is labeled 'small_talk' instead of 'irrelevant'."
+        },
+        "Response Latency": {
+          "score": 1.0,
+          "passed": true,
+          "reason": "Latency 2839ms <= 40000ms threshold"
+        }
+      },
+      "response_payload": {
+        "actual_intent": "small_talk",
+        "actual_sql": null,
+        "actual_answer": "Hello! How can I assist you today?",
+        "response_latency_ms": 2839
+      },
+      "expected": {
+        "expected_intent": "irrelevant",
+        "expected_tables": [],
+        "expected_sql": null,
+        "answer_expectations": "Should politely refuse as out-of-scope and ask user to ask a relevant question about the dashboard"
+      }
     }
   ]
 }

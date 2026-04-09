@@ -4,5 +4,7 @@ __pycache__/
 .pytest_cache/
 *.pyc
 .deepeval/
+datasets/*
+!datasets/sample.json
 results/*
 !results/sample_eval_result.json

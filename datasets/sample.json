@@ -1,28 +1,43 @@
 [
     {
-        "question": "How many beneficiaries are there in total?",
+        "question": "Which month has the highest number of pipeline failures ?",
         "expected_intent": "query_with_sql",
-        "expected_tables": ["fact_beneficiaries"],
-        "table_descriptions": {
-            "fact_beneficiaries": "Contains one row per beneficiary with demographic and enrollment data"
-        },
-        "expected_sql": "SELECT COUNT(*) FROM fact_beneficiaries",
-        "answer_expectations": "Should return a single count number"
+        "expected_tables": [
+            "intermediate.agg_pipeline_runs"
+        ],
+        "expected_sql": "SELECT month, SUM(total_failed_runs) AS total_failed_runs FROM intermediate.agg_pipeline_runs \n GROUP BY month \nORDER BY total_failed_runs DESC \n LIMIT 1",
+        "answer_expectations": "Should return the month with the highest number of pipeline failures"
     },
     {
-        "question": "What does this dashboard show?",
+        "question": "How many dalgo orgs have a superset account ?",
         "expected_intent": "query_without_sql",
-        "expected_tables": [],
-        "table_descriptions": {},
-        "expected_sql": null,
-        "answer_expectations": "Should describe the dashboard's purpose using context docs"
+        "expected_tables": [
+            "intermediate.all_orgs"
+        ],
+        "expected_sql": "SELECT COUNT(*) FROM intermediate.all_orgs WHERE superset_viz_url is not null AND superset_viz_url != ''",
+        "answer_expectations": "Should return the count of Dalgo organizations that have a Superset account"
+    },
+    {
+        "question": "Give me top 5 orgs by pipelines runs in the month of Feb 2026",
+        "expected_intent": "query_without_sql",
+        "expected_tables": [
+            "intermediate.agg_pipeline_runs"
+        ],
+        "expected_sql": "SELECT org_name, SUM(total_pipeline_runs) AS total_pipeline_runs \n FROM intermediate.agg_pipeline_runs \n WHERE month = 2 \n GROUP BY org_name \n ORDER BY total_pipeline_runs DESC \n LIMIT 5",
+        "answer_expectations": "Should return the top 5 Dalgo organizations by pipeline runs in February 2026"
     },
     {
         "question": "What is the weather like today?",
         "expected_intent": "irrelevant",
         "expected_tables": [],
-        "table_descriptions": {},
         "expected_sql": null,
         "answer_expectations": "Should politely refuse as out-of-scope"
+    },
+    {
+        "question": "Hi there !",
+        "expected_intent": "irrelevant",
+        "expected_tables": [],
+        "expected_sql": null,
+        "answer_expectations": "Should politely refuse as out-of-scope and ask user to ask a relevant question about the dashboard"
     }
 ]
