@@ -5,6 +5,6 @@ __pycache__/
 *.pyc
 .deepeval/
 datasets/*
-!datasets/sample*
+!datasets/sample_*
 results/*
-!results/sample*
+!results/sample_*
